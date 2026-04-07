@@ -2,7 +2,8 @@ import { useState, useEffect, useRef } from "react";
 import { useLocation, useParams } from "wouter";
 import { ChatHeader } from "@/components/ChatHeader";
 import { MessageBubble } from "@/components/MessageBubble";
-import { MessageInput } from "@/components/MessageInput";
+import { MessageInput, type MessageInputHandle } from "@/components/MessageInput";
+import { VirtualKeyboard } from "@/components/VirtualKeyboard";
 import { AudioRecorder } from "@/components/AudioRecorder";
 import { TranslationIndicator } from "@/components/TranslationIndicator";
 import { TypingIndicator } from "@/components/TypingIndicator";
@@ -13,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { useChatStore } from "@/store/chatStore";
 import { useChat } from "@/hooks/useChat";
 import { type LanguageCode, getLanguageName } from "@/lib/languages";
-import { ArrowLeft, Menu } from "lucide-react";
+import { ArrowLeft, Keyboard, Menu } from "lucide-react";
 import { AuthManager } from "@/lib/auth-manager";
 import { useToast } from "@/hooks/use-toast";
 import { AppSidebar } from "@/components/AppSidebar";
@@ -25,6 +26,8 @@ export default function ChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const [showSidebar, setShowSidebar] = useState(false);
+  const [showIndicKeyboard, setShowIndicKeyboard] = useState(false);
+  const messageInputRef = useRef<MessageInputHandle>(null);
   
   const token = localStorage.getItem("token");
   const userStr = localStorage.getItem("user");
@@ -257,15 +260,45 @@ export default function ChatPage() {
         )}
 
         <div className="bg-surface dark:bg-surface border-t border-outline-variant">
-          <div className="max-w-5xl mx-auto px-4 md:px-6 py-3.5">
-            <MessageInput
-              onSendMessage={handleSendMessage}
-              onStartVoiceInput={startVoiceInput}
-              onStopVoiceInput={stopVoiceInput}
-              isRecording={isRecording}
-              placeholder={`Type a message in ${getLanguageName(selectedLanguage)}...`}
-              onTyping={notifyTyping}
-            />
+          <div className="max-w-5xl mx-auto px-4 md:px-6 py-3.5 space-y-3">
+            {showIndicKeyboard && (
+              <VirtualKeyboard
+                language={selectedLanguage}
+                className="max-h-[min(40vh,360px)] overflow-y-auto"
+                onInsert={(text) => messageInputRef.current?.insertText(text)}
+                onBackspace={() => messageInputRef.current?.deleteBackward()}
+                onSpace={() => messageInputRef.current?.insertText(" ")}
+              />
+            )}
+            <div className="flex items-end gap-2">
+              <Button
+                type="button"
+                variant={showIndicKeyboard ? "secondary" : "outline"}
+                size="icon"
+                className="h-12 w-12 rounded-xl shrink-0"
+                onClick={() => setShowIndicKeyboard((v) => !v)}
+                aria-pressed={showIndicKeyboard}
+                aria-label={
+                  showIndicKeyboard
+                    ? "Hide virtual keyboard"
+                    : "Show virtual keyboard"
+                }
+                data-testid="button-indic-keyboard"
+              >
+                <Keyboard className="h-5 w-5" />
+              </Button>
+              <div className="flex-1 min-w-0">
+                <MessageInput
+                  ref={messageInputRef}
+                  onSendMessage={handleSendMessage}
+                  onStartVoiceInput={startVoiceInput}
+                  onStopVoiceInput={stopVoiceInput}
+                  isRecording={isRecording}
+                  placeholder={`Type a message in ${getLanguageName(selectedLanguage)}...`}
+                  onTyping={notifyTyping}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
