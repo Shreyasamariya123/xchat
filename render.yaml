@@ -1,0 +1,7 @@
+# Optional: deploy via Render Blueprint (https://render.com/docs/blueprint-spec)
+services:
+  - type: web
+    name: final-nlp
+    runtime: node
+    buildCommand: npm install --include=dev && npm run build
+    startCommand: node dist/index.js
