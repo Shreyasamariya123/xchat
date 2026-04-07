@@ -201,7 +201,7 @@ export default function AuthPage() {
 
           <div className="text-center">
             <p className="text-xs text-on-surface-variant">
-              Supports 12 Indian regional languages
+              Currently 12 Indian regional languages are supported.
             </p>
           </div>
         </div>
